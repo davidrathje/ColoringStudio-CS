@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Coloring Studio (CS) | RC1 Production</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 40px; background: #f0f2f5; }
+        .panel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        button { width: 100%; padding: 15px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; }
+        .audit-log { margin-top: 20px; padding: 10px; background: #1e1e1e; color: #00ff00; border-radius: 5px; font-family: monospace; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h1>Coloring Studio (CS)</h1>
+        <p>Status: <strong>Production Environment | Audit Active</strong></p>
+        <button id="run-rc1">Execute & Audit RC1</button>
+        <div id="audit-log" class="audit-log">Waiting for execution...</div>
+    </div>
+
+    <script type="module">
+        import { drawCombinedPlanPng } from '../src/printRenderer.js';
+
+        document.getElementById('run-rc1').addEventListener('click', async () => {
+            const log = document.getElementById('audit-log');
+            log.innerHTML = "Audit: Initializing data fetch...<br>";
+
+            try {
+                const response = await fetch('../data/medium/Ohuhu_Master.xlsx');
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
+                log.innerHTML += "Audit: Mapping local schema...<br>";
+                const cleanData = rawData
+                    .filter(item => item.Status === 'VERIFIED' && item.Kod && item.Namn)
+                    .map(item => ({
+                        Code: item.Kod,
+                        Name: item.Namn,
+                        Hex: item.Hex || "#CCCCCC"
+                    }));
+
+                if (cleanData.length === 0) throw new Error("No VERIFIED items found.");
+                
+                log.innerHTML += `Audit: Success! ${cleanData.length} records processed.<br>`;
+
+                const canvas = drawCombinedPlanPng(cleanData);
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a5');
+                doc.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG', 10, 10, 128, 190);
+                doc.save('RC1_Pegasus_Production.pdf');
+
+                log.innerHTML += "System: PDF exported successfully.";
+            } catch (error) {
+                console.error("CS Audit Error:", error);
+                log.innerHTML += `<span style="color:red;">Critical Error: ${error.message}</span>`;
+            }
+        });
+    </script>
+</body>
+</html>	 	
