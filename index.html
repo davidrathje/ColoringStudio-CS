@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Coloring Studio (CS) | RC1 Production</title>
+    <title>ColorMatchStudio | Production</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -14,27 +14,24 @@
 </head>
 <body>
     <div class="panel">
-        <h1>Coloring Studio (CS)</h1>
-        <p>Status: <strong>Production Environment</strong></p>
+        <h1>ColorMatchStudio</h1>
         <button id="run-rc1">Execute & Audit RC1</button>
         <div id="audit-log" class="audit-log">System: Initializing...</div>
     </div>
 
     <script type="module">
-        import { drawCombinedPlanPng } from '../src/printRenderer.js';
+        import { drawCombinedPlanPng } from './src/printRenderer.js';
 
         const log = document.getElementById('audit-log');
 
-        // 1. Felhantering
         window.onerror = function(message, source, lineno, colno, error) {
             log.innerHTML += `<br><span style="color:red;">Error: ${message}</span>`;
         };
 
-        // 2. Inbox Listener (använder ../ för att nå roten från /dist/)
         async function checkInbox() {
             try {
-                const response = await fetch('../data/inbox.json');
-                if (!response.ok) throw new Error(`Inbox Status: ${response.status}`);
+                const response = await fetch('./data/inbox.json');
+                if (!response.ok) throw new Error(`Status: ${response.status}`);
                 const data = await response.json();
                 const latest = data.inbox[data.inbox.length - 1];
                 log.innerHTML += `<br>Inbox: Sync OK - ${latest.data}`;
@@ -42,13 +39,16 @@
                 log.innerHTML += `<br><span style="color:orange;">Inbox: ${error.message}</span>`;
             }
         }
-        checkInbox();
 
-        // 3. Ursprunglig logik
+        // Trigga vid laddning
+        window.addEventListener('DOMContentLoaded', () => {
+            checkInbox();
+        });
+
         document.getElementById('run-rc1').addEventListener('click', async () => {
             log.innerHTML = "Audit: Fetching data...<br>";
             try {
-                const response = await fetch('../data/medium/Ohuhu_Master.xlsx');
+                const response = await fetch('./data/medium/Ohuhu_Master.xlsx');
                 const arrayBuffer = await response.arrayBuffer();
                 const workbook = XLSX.read(arrayBuffer, { type: 'array' });
                 const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
