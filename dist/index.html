@@ -21,6 +21,11 @@
     </div>
 
     <script type="module">
+        window.onerror = function(message, source, lineno, colno, error) {
+    const log = document.getElementById('audit-log');
+    log.innerHTML += `<br><span style="color:red;">JS Error: ${message}</span>`;
+};
+
                 async function checkInbox() {
             const log = document.getElementById('audit-log');
             try {
