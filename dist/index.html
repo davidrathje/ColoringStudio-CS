@@ -21,31 +21,33 @@
     </div>
 
     <script type="module">
-        window.onerror = function(message, source, lineno, colno, error) {
-    const log = document.getElementById('audit-log');
-    log.innerHTML += `<br><span style="color:red;">JS Error: ${message}</span>`;
-};
-
-                async function checkInbox() {
-            const log = document.getElementById('audit-log');
-            try {
-                const response = await fetch('../data/inbox.json'); // Sökväg till din kontrollfil
-                const data = await response.json();
-                const latest = data.inbox[data.inbox.length - 1];
-                
-                // Om vi har en instruktion, logga den i ditt gränssnitt
-                log.innerHTML += `System: Syncing instruction - ${latest.data}<br>`;
-                return latest;
-            } catch (error) {
-                console.log("Inbox empty or unreachable");
-            }
-        }
-
-        // Kör vid start tillsammans med din övriga logik
-        checkInbox();
-
         import { drawCombinedPlanPng } from '../src/printRenderer.js';
 
+        // 1. Robust felhantering för att undvika vit skärm
+        window.onerror = function(message, source, lineno, colno, error) {
+            const log = document.getElementById('audit-log');
+            if (log) {
+                log.innerHTML += `<br><span style="color:red;">JS Error: ${message} (Line: ${lineno})</span>`;
+            }
+        };
+
+        // 2. Inbox Listener för din hotfixer
+        async function checkInbox() {
+            const log = document.getElementById('audit-log');
+            try {
+                const response = await fetch('../data/inbox.json');
+                if (!response.ok) throw new Error(`Inbox fetch failed: ${response.status}`);
+                
+                const data = await response.json();
+                const latest = data.inbox[data.inbox.length - 1];
+                log.innerHTML += `<br>System: Syncing instruction - ${latest.data}`;
+            } catch (error) {
+                log.innerHTML += `<br><span style="color:orange;">Inbox Info: ${error.message}</span>`;
+            }
+        }
+        checkInbox();
+
+        // 3. Ursprunglig logik
         document.getElementById('run-rc1').addEventListener('click', async () => {
             const log = document.getElementById('audit-log');
             log.innerHTML = "Audit: Initializing data fetch...<br>";
@@ -78,9 +80,9 @@
                 log.innerHTML += "System: PDF exported successfully.";
             } catch (error) {
                 console.error("CS Audit Error:", error);
-                log.innerHTML += `<span style="color:red;">Critical Error: ${error.message}</span>`;
+                log.innerHTML += `<br><span style="color:red;">Critical Error: ${error.message}</span>`;
             }
         });
     </script>
 </body>
-</html>	 	
+</html>
