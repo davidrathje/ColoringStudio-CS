@@ -1,0 +1,20 @@
+// DocHandler.js - Din motor för filhantering
+const DocHandler = {
+    manifest: null,
+
+    async init() {
+        const response = await fetch('/data/manifest.json');
+        this.manifest = await response.json();
+    },
+
+    async patch(targetKey, payload) {
+        if (!this.manifest.allowed_docs[targetKey]) {
+            throw new Error("Target ej tillåtet i manifest.");
+        }
+        
+        const path = this.manifest.allowed_docs[targetKey];
+        // Här anropar vi GitHub API:et för att pusha ändringen
+        console.log(`Pushar patch till: ${path}`, payload);
+        return await githubAPI.updateFile(path, payload);
+    }
+};
