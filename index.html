@@ -29,16 +29,23 @@
         };
 
         async function checkInbox() {
-            try {
-                const response = await fetch('./data/inbox.json');
-                if (!response.ok) throw new Error(`Status: ${response.status}`);
-                const data = await response.json();
-                const latest = data.inbox[data.inbox.length - 1];
-                log.innerHTML += `<br>Inbox: Sync OK - ${latest.data}`;
-            } catch (error) {
-                log.innerHTML += `<br><span style="color:orange;">Inbox: ${error.message}</span>`;
-            }
-        }
+    const log = document.getElementById('audit-log');
+    try {
+        // Vi lägger till ?t=TIMESTAMP i slutet av URL:en för att lura cachen
+        const timestamp = new Date().getTime();
+        const response = await fetch(`./data/inbox.json?t=${timestamp}`);
+        
+        if (!response.ok) throw new Error(`Status: ${response.status}`);
+        
+        const data = await response.json();
+        const latest = data.inbox[data.inbox.length - 1];
+        
+        log.innerHTML += `<br>Inbox: ${JSON.stringify(latest.data)}`;
+    } catch (error) {
+        log.innerHTML += `<br>Inbox-fel: ${error.message}`;
+    }
+}
+
 
         // Trigga vid laddning
         window.addEventListener('DOMContentLoaded', () => {
