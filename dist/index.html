@@ -21,6 +21,24 @@
     </div>
 
     <script type="module">
+                async function checkInbox() {
+            const log = document.getElementById('audit-log');
+            try {
+                const response = await fetch('../data/inbox.json'); // Sökväg till din kontrollfil
+                const data = await response.json();
+                const latest = data.inbox[data.inbox.length - 1];
+                
+                // Om vi har en instruktion, logga den i ditt gränssnitt
+                log.innerHTML += `System: Syncing instruction - ${latest.data}<br>`;
+                return latest;
+            } catch (error) {
+                console.log("Inbox empty or unreachable");
+            }
+        }
+
+        // Kör vid start tillsammans med din övriga logik
+        checkInbox();
+
         import { drawCombinedPlanPng } from '../src/printRenderer.js';
 
         document.getElementById('run-rc1').addEventListener('click', async () => {
