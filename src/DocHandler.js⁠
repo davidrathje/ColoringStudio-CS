@@ -1,41 +1,20 @@
-/**
- * src/DocHandler.js
- * Modulär hanterare för GitHub API med SHA-hantering
- */
+name: Auto Commit
+on:
+  push:
+    paths:
+      - 'data/inbox.json' # Triggas när du uppdaterar din inbox
 
-export const DocHandler = k{
-    repo: "davidrathje/ColoringStudio-CS",
-
-
-    async getFile(path) {
-        const url = `https://api.github.com/repos/${this.repo}/contents/${path}`;
-        const response = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${this.token}` }
-        });
-        return await response.json();
-    },
-
-    async updateFile(path, content, message) {
-        // 1. Hämta nuvarande SHA
-        const fileData = await this.getFile(path);
-        const sha = fileData.sha;
-
-        // 2. Förbered payload
-        const body = {
-            message: message,
-            content: btoa(JSON.stringify(content)),
-            sha: sha
-        };
-
-        // 3. PUT till GitHub
-        const url = `https://api.github.com/repos/${this.repo}/contents/${path}`;
-        return await fetch(url, {
-            method: 'PUT',
-            headers: { 
-                'Authorization': `Bearer ${this.token}`,
-                'Content-Type': 'application/json' 
-            },
-            body: JSON.stringify(body)
-        });
-    }
-};
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Process Data
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add data/inbox.json
+          git commit -m "Auto-processed inbox update"
+          git push
