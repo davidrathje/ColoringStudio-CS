@@ -5,7 +5,7 @@
 
 export const DocHandler = k{
     repo: "davidrathje/ColoringStudio-CS",
-    token: "Z2hwX2RYVTBEWWVuZHUwdjNONHhPRHdMTHlZRXhDaGthTjJxeGc5ZA", // Kom ihåg att sätta din token
+
 
     async getFile(path) {
         const url = `https://api.github.com/repos/${this.repo}/contents/${path}`;
