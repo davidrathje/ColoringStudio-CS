@@ -3,7 +3,7 @@
  * Modulär hanterare för GitHub API med SHA-hantering
  */
 
-export const DocHandler = {
+export const DocHandler = k{
     repo: "davidrathje/ColoringStudio-CS",
     token: "DIN_TOKEN_HÄR", // Kom ihåg att sätta din token
 
