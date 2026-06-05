@@ -1,20 +1,41 @@
-// DocHandler.js - Din motor för filhantering
-const DocHandler = {
-    manifest: null,
+/**
+ * src/DocHandler.js
+ * Modulär hanterare för GitHub API med SHA-hantering
+ */
 
-    async init() {
-        const response = await fetch('/data/manifest.json');
-        this.manifest = await response.json();
+export const DocHandler = {
+    repo: "davidrathje/ColoringStudio-CS",
+    token: "DIN_TOKEN_HÄR", // Kom ihåg att sätta din token
+
+    async getFile(path) {
+        const url = `https://api.github.com/repos/${this.repo}/contents/${path}`;
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${this.token}` }
+        });
+        return await response.json();
     },
 
-    async patch(targetKey, payload) {
-        if (!this.manifest.allowed_docs[targetKey]) {
-            throw new Error("Target ej tillåtet i manifest.");
-        }
-        
-        const path = this.manifest.allowed_docs[targetKey];
-        // Här anropar vi GitHub API:et för att pusha ändringen
-        console.log(`Pushar patch till: ${path}`, payload);
-        return await githubAPI.updateFile(path, payload);
+    async updateFile(path, content, message) {
+        // 1. Hämta nuvarande SHA
+        const fileData = await this.getFile(path);
+        const sha = fileData.sha;
+
+        // 2. Förbered payload
+        const body = {
+            message: message,
+            content: btoa(JSON.stringify(content)),
+            sha: sha
+        };
+
+        // 3. PUT till GitHub
+        const url = `https://api.github.com/repos/${this.repo}/contents/${path}`;
+        return await fetch(url, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${this.token}`,
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify(body)
+        });
     }
 };
